@@ -130,6 +130,31 @@ void ssd1306_draw_string(int x, int y, const char *str)
     }
 }
 
+void ssd1306_draw_bitmap(int x, int y, const uint8_t *bitmap, int w, int h)
+{
+    int byte_width = (w + 7) / 8; // nombre d'octets par ligne, arrondi au supérieur
+
+    for (int row = 0; row < h; row++) {
+        for (int col = 0; col < w; col++) {
+            uint8_t byte = bitmap[row * byte_width + (col / 8)];
+            bool on = (byte >> (7 - (col % 8))) & 0x01;
+            ssd1306_set_pixel(x + col, y + row, on);
+        }
+    }
+}
+
+esp_err_t ssd1306_set_contrast(uint8_t level)
+{
+    esp_err_t err = ssd1306_write_cmd(0x81); // Set Contrast Control
+    if (err != ESP_OK) return err;
+    return ssd1306_write_cmd(level);
+}
+
+esp_err_t ssd1306_invert(bool inverted)
+{
+    return ssd1306_write_cmd(inverted ? 0xA7 : 0xA6); // Inverse / Normal display
+}
+
 esp_err_t ssd1306_display(void)
 {
     // Définit la fenêtre d'adressage complète (colonnes + pages)
