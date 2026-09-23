@@ -21,7 +21,6 @@ static i2c_master_dev_handle_t s_dev_handle = NULL;
 static uint8_t s_buffer[SSD1306_WIDTH * SSD1306_PAGES];
 
 // ---- Bas niveau I2C ----
-
 static esp_err_t ssd1306_write_cmd(uint8_t cmd)
 {
     uint8_t data[2] = {0x00, cmd}; // Co=0, D/C#=0 -> commande

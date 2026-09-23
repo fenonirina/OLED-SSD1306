@@ -31,7 +31,6 @@ esp_err_t ssd1306_init(void);
 
 /**
  * @brief Efface l'écran
- * @return ESP_OK en cas de succès
  */
 void ssd1306_clear(void);
 
