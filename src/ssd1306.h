@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "esp_err.h"
 
 // ---- Configuration matérielle (à adapter à ton câblage) ----
@@ -31,4 +31,4 @@ void ssd1306_draw_bitmap(int x, int y, const uint8_t *bitmap, int w, int h);
 esp_err_t ssd1306_set_contrast(uint8_t level);   // 0x00 - 0xFF
 esp_err_t ssd1306_invert(bool inverted);         // true = fond blanc / pixels noirs
 
-#endif // SSD1306_H
+#endif

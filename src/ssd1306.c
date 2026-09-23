@@ -5,6 +5,10 @@
 
 static const char *TAG = "SSD1306";
 
+// Handles du bus I2C et du périphérique, gérés en interne par ce module.
+static i2c_master_bus_handle_t s_bus_handle = NULL;
+static i2c_master_dev_handle_t s_dev_handle = NULL;
+
 // Framebuffer : 1 bit par pixel, organisé en pages de 8 lignes (format natif SSD1306)
 #define SSD1306_PAGES (SSD1306_HEIGHT / 8)
 static uint8_t s_buffer[SSD1306_WIDTH * SSD1306_PAGES];
@@ -14,8 +18,7 @@ static uint8_t s_buffer[SSD1306_WIDTH * SSD1306_PAGES];
 static esp_err_t ssd1306_write_cmd(uint8_t cmd)
 {
     uint8_t data[2] = {0x00, cmd}; // Co=0, D/C#=0 -> commande
-    return i2c_master_write_to_device(SSD1306_I2C_PORT, SSD1306_I2C_ADDR,
-                                       data, sizeof(data), pdMS_TO_TICKS(100));
+    return i2c_master_transmit(s_dev_handle, data, sizeof(data), 100);
 }
 
 static esp_err_t ssd1306_write_data(const uint8_t *data, size_t len)
@@ -25,25 +28,31 @@ static esp_err_t ssd1306_write_data(const uint8_t *data, size_t len)
     if (!buf) return ESP_ERR_NO_MEM;
     buf[0] = 0x40;
     memcpy(buf + 1, data, len);
-    esp_err_t err = i2c_master_write_to_device(SSD1306_I2C_PORT, SSD1306_I2C_ADDR,
-                                                buf, len + 1, pdMS_TO_TICKS(200));
+    esp_err_t err = i2c_master_transmit(s_dev_handle, buf, len + 1, 200);
     free(buf);
     return err;
 }
 
 static esp_err_t i2c_bus_init(void)
 {
-    i2c_config_t conf = {
-        .mode = I2C_MODE_MASTER,
+    i2c_master_bus_config_t bus_config = {
+        .i2c_port = SSD1306_I2C_PORT,
         .sda_io_num = SSD1306_SDA_GPIO,
         .scl_io_num = SSD1306_SCL_GPIO,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = SSD1306_I2C_FREQ_HZ,
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+        .glitch_ignore_cnt = 7,
+        .flags.enable_internal_pullup = true,
     };
-    esp_err_t err = i2c_param_config(SSD1306_I2C_PORT, &conf);
+    
+    esp_err_t err = i2c_new_master_bus(&bus_config, &s_bus_handle);
     if (err != ESP_OK) return err;
-    return i2c_driver_install(SSD1306_I2C_PORT, conf.mode, 0, 0, 0);
+
+    i2c_device_config_t dev_config = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = SSD1306_I2C_ADDR,
+        .scl_speed_hz = SSD1306_I2C_FREQ_HZ,
+    };
+    return i2c_master_bus_add_device(s_bus_handle, &dev_config, &s_dev_handle);
 }
 
 // ---- Initialisation du contrôleur SSD1306 ----
