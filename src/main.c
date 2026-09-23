@@ -1,3 +1,10 @@
+/*
+* @file main.c
+* @brief Exemple d'utilisation du contrôleur SSD1306 via I2C
+* @author Fenonirina
+* @date 2024-06-15
+*/
+
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"

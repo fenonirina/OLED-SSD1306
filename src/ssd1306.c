@@ -1,3 +1,10 @@
+/*
+* @file ssd1306.c
+* @brief Interface pour le contrôleur SSD1306 via I2C
+* @author Fenonirina
+* @date 2024-06-15
+*/
+
 #include <string.h>
 #include "ssd1306.h"
 #include "font5x7.h"
